@@ -7,7 +7,7 @@
 
 - The agent captures all inputs and outputs occurring in the session to populate its context (up to token limit). 
 - Use magic commands `%ai` and `%%ai` to interact with the agent using natural language.
-- Hold `<ctrl>+<space>` to record and transcribe your voice into text inserted at cursor position. Useful to speak out your prompts instead of typing them. 
+- Hold `<ctrl>+<space>` to record and transcribe your voice into text inserted at cursor position. Useful to speak out your prompts instead of typing them. Once active, it can be used wherever the cursor can go, not just in the notebook...
 - The agent can autonomously execute Python code within the session.
 - Can be accessed as a declared object in the session, allowing configuration changes or method execution programmatically.
 - Can be used as a smart Python function returning any kind of data/object.
@@ -21,12 +21,23 @@
 pip install ipy-agent
 ```
 
-## Usage
+## Setup
 
 First, you need to set the API keys for your preferred LLM providers as environment variables.
 Refer to the [litellm](https://www.litellm.ai/) documentation to know the correct names for your environment variables to be recognized.
 
-Integration into the IPython session is as simple as:
+In case you want the agent to be able to use the websearch tool you will also need to setup a Google custom search engine and provide these two API keys:
+
+```bash
+GOOGLE_CUSTOM_SEARCH_API_KEY="..."
+GOOGLE_CUSTOM_SEARCH_CX="..."
+```
+
+These API keys can be placed in your .bashrc, directly in your python code via `os.environ` (not recommended), or provided via a .env file and loaded with python-dotenv for instance.
+
+## Usage
+
+Assuming your API keys are properly set up, integration into the IPython session (such as a Jupyter notebook) is as simple as running:
 
 ```python
 from ipy_agent import IPyAgent
@@ -34,6 +45,9 @@ IPyAgent(name="Jarvis", username="Baptiste");
 ```
 
 Once loaded, the agent can be accessed in the namespace by the name you gave it in lowercase (`jarvis` in this case) and will respond to line and cell magics `%ai` and `%%ai` respectively. If no custom name is provided, the agent will be accessible by default as `agent`.
+
+Alternatively, you may run the command `ipy_agent` directly in the terminal. This will open a new terminal IPython session with the agent already loaded with default configuration. (Just be aware that voice dictation via `<ctrl>+<space>` tend to freeze the terminal IPython shell.)
+
 
 ### Configuration
 
@@ -71,7 +85,7 @@ even_list = jarvis("Return a list of n even numbers", n=5)
 even_list # Output: [0, 2, 4, 6, 8]
 ```
 
-When doing so, the agent's markdown output will be silenced and only the result of computation will be returned.
+When doing so, the agent's markdown output will be silenced and only the result of computations will be returned.
 
 ### Available Tools
 
