@@ -1,7 +1,6 @@
 from IPython.display import display, Markdown
 from IPython.core.magic import register_line_cell_magic
 from IPython import get_ipython
-from ipy_agent import start_dictation
 import os
                         
 def is_notebook():
@@ -50,8 +49,3 @@ def ai(line, cell=''):
     else:
         prompt=cell
     get_ipython().user_ns['<<<self.instance_name>>>'](None,silent=False)
-
-start_dictation()
-
-
-

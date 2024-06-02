@@ -10,10 +10,14 @@ import logging
 from threading import Thread
 
 class AudioTranscriber:
-    def __init__(self, language='fr', model="whisper-1"):
+    def __init__(self, language='en', model="whisper-1"):
         self.client = OpenAI()
-        self.language = language
+        self._language=language
         self.model = model
+
+    @property
+    def language(self):
+        return self._language
 
     def transcribe(self, audio_data):
         try:
@@ -123,35 +127,43 @@ class HotKeyListener:
         except KeyboardInterrupt:
             logging.info("Interruption par l'utilisateur.")
 
+class Dictation:
 
-def start_dictation():
+    def __init__(self,agent,hotkey="<ctrl>+<space>",model="whisper-1"):
 
-    def on_press():
-        audio_recorder.start_recording()
+        class Transcriber(AudioTranscriber):
+            @property
+            def language(self):
+                return agent.config.language
+        
+        self.audio_transcriber = Transcriber(model=model)
+        self.audio_recorder = AudioRecorder()
+        self.keyboard=Controller()
+        self.keyboard_listener = HotKeyListener()
+        self.keyboard_listener.bind(hotkey,on_press=self.on_press, on_release=self.on_release)
 
-    def on_release():
-        audio_recorder.stop_recording()
-        text = audio_transcriber.transcribe(audio_recorder.audio_data)
-        write_text(text)  # Simuler l'écriture du texte au niveau du curseur actif.
+    def on_press(self):
+        self.audio_recorder.start_recording()
 
-    def write_text(text):
-        keyboard = Controller()
+    def write_text(self,text):
         for char in text:
-            keyboard.press(char)
-            keyboard.release(char)
+            self.keyboard.press(char)
+            self.keyboard.release(char)
             time.sleep(0.005)
 
-    audio_transcriber = AudioTranscriber()
-    audio_recorder = AudioRecorder()
-    keyboard_listener = HotKeyListener()
-    keyboard_listener.bind("<ctrl>+<space>",on_press=on_press, on_release=on_release)
+    def on_release(self):
+        self.audio_recorder.stop_recording()
+        text = self.audio_transcriber.transcribe(self.audio_recorder.audio_data)
+        self.write_text(text)  # Simuler l'écriture du texte au niveau du curseur actif.
 
-    def listen():
+    def listen(self):
         try:
-            keyboard_listener.start()
+            self.keyboard_listener.start()
         except Exception as e:
             logging.error(f"Erreur lors de l'écoute du clavier : {e}")
 
-    listen_thread = Thread(target=listen)
-    listen_thread.daemon = True
-    listen_thread.start()
+    def start(self):
+        self.listen_thread = Thread(target=self.listen)
+        self.listen_thread.daemon = True
+        self.listen_thread.start()
+

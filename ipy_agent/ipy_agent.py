@@ -5,6 +5,7 @@ from .attrdict import AttrDict
 import traceback
 from functools import wraps
 from .retrieval import DocumentStore
+from .dictation import Dictation
 from .msg_collector import MsgCollector,CollectIO
 from .tools import get_text, init_tools
 from .utils import root_join,Message,text_content,shell_type,truncate,pack_msgs,total_tokens,sort,extract_python,format
@@ -43,6 +44,8 @@ class IPyAgent:
         self.add_message(Message(content=preprompt or text_content(root_join("default_preprompt.txt")), role="system", name="Instructions", type="header"))
         self.init_shell(shell=shell)
         self.init_tools()
+        self.dictation=Dictation(self)
+        self.dictation.start()
 
     def __getattr__(self,attr):
         if attr in self.tools:
@@ -64,7 +67,7 @@ class IPyAgent:
         self.shell.user_ns[self.instance_name] = self
 
         # Define the magic commands to call the assistant from the console/notebook
-        self.shell.run_cell(format(text_content(root_join("init.py")),context=locals()))
+        self.shell.run_cell(format(text_content(root_join("init_shell.py")),context=locals()))
 
         # Save the original run_cell method
         self.run_cell = self.shell.run_cell

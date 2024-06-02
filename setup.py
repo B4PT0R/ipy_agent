@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="ipy_agent",
-    version="0.0.2",
+    version="0.0.3",
     author="Baptiste Ferrand",
     author_email="bferrand.maths@gmail.com",
     description="An AI assistant designed to be integrated in an IPython shell.",
@@ -16,7 +16,7 @@ setuptools.setup(
         package_data={
         'ipy_agent': [
             'default_preprompt.txt',
-            'init.py'
+            'init_shell.py'
         ]
     },
     entry_points={
