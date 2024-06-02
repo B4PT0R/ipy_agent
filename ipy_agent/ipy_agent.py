@@ -66,7 +66,7 @@ class IPyAgent:
 
     def init_files(self):
         if not "memory" in self.store.get_titles():
-            self.store.new_document(type="json",title="memory",content=dict())
+            self.store.new_document(type="json",title="memory",content=dict(),description="Memory storage of the AI assistant")
         self.store.load_document("memory")
         path=os.path.join(self.workfolder,"startup.py")
         if not os.path.isfile(path):
