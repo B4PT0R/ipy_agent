@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="ipy_agent",
-    version="0.0.1",
+    version="0.0.2",
     author="Baptiste Ferrand",
     author_email="bferrand.maths@gmail.com",
     description="An AI assistant designed to be integrated in an IPython shell.",
@@ -38,7 +38,7 @@ setuptools.setup(
         "google-api-python-client",
         "litellm",
         "numpy",
-        "odf",
+        "odfpy",
         "openai",
         "pydub",
         "pynput",
