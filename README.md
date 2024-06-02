@@ -7,7 +7,8 @@
 
 - The agent captures all inputs and outputs occurring in the session to populate its context (up to token limit). 
 - Use magic commands `%ai` and `%%ai` to interact with the agent using natural language.
-- Hold `<ctrl>+<space>` to record and transcribe your voice into text inserted at cursor position. Useful to speak out your prompts instead of typing them. Once active, it can be used wherever the cursor can go, not just in the notebook...
+- The assistant uses Whisper for multilingual voice synthesis.
+- Hold `<ctrl>+<space>` to record and transcribe your voice into text inserted at cursor position. Useful to speak out your prompts instead of typing them. Once active, it can be used wherever the cursor can go, not just in the notebook. (uses pynput for global keyboard hotkey detection. requires proper permissions to do so.)
 - The agent can autonomously execute Python code within the session.
 - Can be accessed as a declared object in the session, allowing configuration changes or method execution programmatically.
 - Can be used as a smart Python function returning any kind of data/object.
