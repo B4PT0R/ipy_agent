@@ -236,8 +236,8 @@ def init_tools(agent):
         obj=agent.store.get_document("memory"),
         description=dedent("""
         <<<self.instance_name>>>.memory
-        A special long term memory file (json type) from your document store, specially designed to enable lasting memory.
-        Can be accessed as a normal nested dict and supports .dump() method so save changes.
+        A special long term memory document (json type) from your document store, specially designed to enable lasting memory.
+        Can be accessed and written to as a normal nested dict. Supports .dump() method so save changes and .search(query, num=10) for quick lookup.
         Contextually relevant memory entries will be automatically retrieved in context. Use explicit keys to organize data clearly and improve performance of semantic retrieval.
         """)
     )

@@ -100,6 +100,7 @@ The agent provides several built-in tools to ease various tasks. These tools are
 - `agent.webdriver()` : Creates and returns a selenium webdriver object configured for web automation tasks.
 - `agent.edit(file=None,text=None)` : Open a text/code editor to let you edit some content.
 - `agent.document_store` : Interface with the custom document store for semantic retrieval and document management (text or JSON).
+- `agent.memory`: A special memory storage for the AI assistant. Can be accessed as a nested dict and supports semantic search or auto-retrieval.
 - `agent.open(file_or_url)` : Opens any file or url with your default webbrowser.
 - `agent.add_tool(name,obj,description)` : Add a new custom tool to the agent, provided a name, a pyhton function or object as `obj`, and a complete description of the tool (signature, methods, example...)
 
