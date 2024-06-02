@@ -42,8 +42,10 @@ class IPyAgent:
         self.init_workfolder(workfolder=workfolder)
         self.store=DocumentStore(folder=os.path.join(self.workfolder,"documents"))
         self.add_message(Message(content=preprompt or text_content(root_join("default_preprompt.txt")), role="system", name="Instructions", type="header"))
+        self.init_files()
         self.init_shell(shell=shell)
         self.init_tools()
+        self.run_startup()
         self.dictation=Dictation(self)
         self.dictation.start()
 
@@ -58,6 +60,24 @@ class IPyAgent:
         if not os.path.isdir(workfolder):
             os.makedirs(workfolder)
         self.workfolder=workfolder
+        path=os.path.join(self.workfolder,"documents")
+        if not os.path.isdir(path):
+            os.makedirs(path)
+
+    def init_files(self):
+        if not "memory" in self.store.get_titles():
+            self.store.new_document(type="json",title="memory",content=dict())
+        self.store.load_document("memory")
+        path=os.path.join(self.workfolder,"startup.py")
+        if not os.path.isfile(path):
+            open(path,'w').close()
+
+    def run_startup(self):
+        path=os.path.join(self.workfolder,"startup.py")
+        with open(path) as f:
+            code=f.read()
+        if code:
+            self.run_cell(code)
 
     def init_shell(self,shell=None):
 

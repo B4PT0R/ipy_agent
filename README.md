@@ -14,6 +14,7 @@
 - Can be used as a smart Python function returning any kind of data/object.
 - Supports various LLM providers and models via [litellm](https://www.litellm.ai/).
 - Integrated tools: The assistant can stream markdown with LaTeX support (in a notebook), talk to you using text to speech, create new code cells in notebooks, observe and extract content (folder, files, URL), introspect python entities (variables, functions, objects, classes, modules...), perform Google searches, perform semantic retrieval using a custom RAG document store (raw text or structured JSON), open files and urls in the browser, open files in a text editor, scrap the web and interact with webpages using a selenium webdriver...
+- Has a long term memory (json data) supporting auto retrieval that can be edited dynamically and used to remember data on the long run. 
 - Custom tools: you can extend the agent's functionalities by defining your own custom tools.
 
 ## Installation
