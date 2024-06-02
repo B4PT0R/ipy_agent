@@ -18,7 +18,7 @@
 ## Installation
 
 ```bash
-pip install ipy_agent
+pip install ipy-agent
 ```
 
 ## Usage
