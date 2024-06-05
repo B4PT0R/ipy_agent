@@ -48,4 +48,4 @@ def ai(line, cell=''):
         prompt=line+'\n'+cell
     else:
         prompt=cell
-    get_ipython().user_ns['<<<self.instance_name>>>'](None,silent=False)
+    get_ipython().user_ns['agent'](None,silent=False)

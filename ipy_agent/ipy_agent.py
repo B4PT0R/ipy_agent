@@ -11,6 +11,7 @@ from .tools import get_text, init_tools
 from .utils import root_join,Message,text_content,shell_type,truncate,pack_msgs,total_tokens,sort,extract_python,format
 from .voice import VoiceProcessor
 from textwrap import dedent
+from dotenv import load_dotenv
 import os
 
 class IPyAgent:
@@ -33,7 +34,6 @@ class IPyAgent:
         self.collector = MsgCollector(self)
         self.voice=VoiceProcessor(self)
         self.name = name or "Agent"
-        self.instance_name=self.name.lower()
         self.capture=True
         self.username=username or "User"
         self.current_role = "user"  # Initialisation du rôle courant
@@ -65,6 +65,16 @@ class IPyAgent:
             os.makedirs(path)
 
     def init_files(self):
+        path=os.path.join(self.workfolder,".env")
+        if not os.path.isfile(path):
+            open(path,'w').close()
+        with open(path) as f:
+            content=f.read()
+        if not content:
+            raise Exception(f"Please setup the .env file found in {self.workfolder} with your API keys.")
+        else:
+            load_dotenv(path)
+            
         if not "memory" in self.store.get_titles():
             self.store.new_document(type="json",title="memory",content=dict(),description="Memory storage of the AI assistant")
         self.store.load_document("memory")
@@ -84,7 +94,7 @@ class IPyAgent:
         self.shell = shell or get_ipython() or TerminalInteractiveShell.instance()
 
         # Injecter l'agent dans l'espace de noms de la console
-        self.shell.user_ns[self.instance_name] = self
+        self.shell.user_ns["agent"] = self
 
         # Define the magic commands to call the assistant from the console/notebook
         self.shell.run_cell(format(text_content(root_join("init_shell.py")),context=locals()))
@@ -126,7 +136,7 @@ class IPyAgent:
         # Finished initializing
         self.display_md(dedent(
             f"""
-            The IPyAgent is ready, declared as `{self.instance_name}` in the console. 
+            The IPyAgent is ready, declared as `agent` in the console. 
 
             Use `%ai` or `%%ai` magics to interact, or call its methods programatically.
 

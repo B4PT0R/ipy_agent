@@ -25,7 +25,8 @@ def text_to_audio(text,voice="shimmer"):
         response = client.audio.speech.create(
             model="tts-1",
             voice=voice,
-            input=text
+            input=text,
+            speed=1.0
         )
 
         for chunk in response.iter_bytes():

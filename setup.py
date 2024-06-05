@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="ipy_agent",
-    version="0.0.4",
+    version="0.0.5",
     author="Baptiste Ferrand",
     author_email="bferrand.maths@gmail.com",
     description="An AI assistant designed to be integrated in an IPython shell.",
@@ -45,7 +45,8 @@ setuptools.setup(
         "requests",
         "selenium",
         "sounddevice",
-        "tiktoken"
+        "tiktoken",
+        "python-dotenv"
     ],
     python_requires='>=3.9',
 )

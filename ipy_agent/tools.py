@@ -32,7 +32,7 @@ def init_tools(agent):
             name="new_code_cell",
             obj=agent.new_code_cell,
             description=dedent("""
-            <<<self.instance_name>>>.new_code_cell(code)
+            agent.new_code_cell(code)
             Adds a new cell to the current notebook populated with some code. 
             Useful to let the user review/edit the code before deciding to execute.
             
@@ -43,7 +43,7 @@ def init_tools(agent):
             Assistant:
             Sure thing! Let me create a new code cell to show you how it's done.
             ```run_python
-            <<<self.instance_name>>>.new_code_cell(\"\"\"
+            agent.new_code_cell(\"\"\"
             def factorial(n):
                 if not isinstance(n,int) or n<0:
                     raise ValueError("n must be a positive integer.")
@@ -87,7 +87,7 @@ def init_tools(agent):
             name="edit",
             obj=edit,
             description=dedent("""
-            <<<self.instance_name>>>.edit(file=None,text=None)
+            agent.edit(file=None,text=None)
             Opens a new notebook tab to let the user edit a file. 
             If no file is provided, opens a new buffer. 
             If text is provided, the text is written to the file/buffer before opening.
@@ -98,21 +98,24 @@ def init_tools(agent):
         name="set_data_output",
         obj=agent.set_data_output,
         description=dedent("""
-        <<<self.instance_name>>>.set_data_output(data)
-        The user may call you programatically like so: data=<<<self.instance_name>>>(query,**kwargs). 
+        agent.set_data_output(data)
+        This tool is special, explanation:
+        The user may call you programatically like so: 
+            data=agent(query,**kwargs). 
         This enables using you as an intelligent python function returning any kind of data. 
         When the user calls you in such a manner, your markdown output will be silenced and you're expected to run a script ending with a call to the set_data_output tool to set the result of the call with the appropriate data. 
-        The kwargs of the call can be accessed via the <<<self.instance_name>>>.call_kwargs dict supporting attribute-style syntax. 
+        The kwargs of the call can be accessed via the agent.call_kwargs dict supporting attribute-style syntax. 
         This tool is purely internal to your functionning and is not meant to be used by the user.
+        If you need to explain it, explain first how the user can use you as a python function.
         
         Example:
         User:
-        data=<<<self.instance_name>>>("Return a list of n even numbers",n=5)
+        data=agent("Return a list of n even numbers",n=5)
         
         Assistant:
         # No talking expected
         ```run_python
-        <<<self.instance_name>>>.set_data_output([2*i for i in range(<<<self.instance_name>>>.call_kwargs.n)])
+        agent.set_data_output([2*i for i in range(agent.call_kwargs.n)])
         ```
         #SUBMIT#           
         """
@@ -127,7 +130,7 @@ def init_tools(agent):
         name='websearch',
         obj=websearch,
         description=dedent("""
-        <<<self.instance_name>>>.websearch(query,num=5,type='web',start=1,lasting=1)
+        agent.websearch(query,num=5,type='web',start=1,lasting=1)
         Perform a google search. 
         type is either 'web' or 'image'. 
         Results are automatically observed in context (returns None).
@@ -138,13 +141,13 @@ def init_tools(agent):
         name='webdriver',
         obj=get_webdriver,
         description=dedent("""
-        driver=<<<self.instance_name>>>.webdriver()
+        driver=agent.webdriver()
         Spawns a preconfigured and ready to be used selenium headless firefox webdriver, suitable to work in the current environment. 
         You should always use this driver rather than attempting to configure one yourself.
         
         Example:
         # Spawn the webdriver
-        driver = <<<self.instance_name>>>.webdriver()
+        driver = agent.webdriver()
         # Accès à la page d'accueil de Wikipédia
         driver.get('https://www.wikipedia.org/')
         # ...
@@ -156,7 +159,7 @@ def init_tools(agent):
         name="observe",
         obj=agent.observe,
         description=dedent("""
-        <<<self.instance_name>>>.observe(source,lasting=1)
+        agent.observe(source,lasting=1)
         Your main tool to gain contextual awareness of some content. 
         Injects in you context feed textual data extracted from any kind of source (folder,file,url,variable,function,class,module...). 
         Allows you to 'look' at the content (this content will be visible to you only). 
@@ -176,9 +179,9 @@ def init_tools(agent):
         name="get_text",
         obj=get_text,
         description=dedent("""
-        text_content=<<<self.instance_name>>>.get_text(source) 
+        text_content=agent.get_text(source) 
         Extracts and returns textual data from any kind of source (folder,file,url,variable,function,class,module...). 
-        Similar to <<<self.instance_name>>>.observe, but the text content is returned instead of being injected in context.
+        Similar to agent.observe, but the text content is returned instead of being injected in context.
         folder : get the recursive tree content.
         file : get the file content as text (supported: pdf,doc,odt,xlsx,csv,ods,...),
         url : get the text content extracted from the web page
@@ -192,17 +195,17 @@ def init_tools(agent):
         name="document_store",
         obj=agent.store,
         description=dedent("""
-        <<<self.instance_name>>>.document_store
+        agent.document_store
         A document store used to implement your contextual data-retrieval mechanism.
         You will find automatically retrieved elements from the store (if any) as an actualized system message called 'Retrieval'. Use it to craft informed responses to the user.
         # Methods:
-            <<<self.instance_name>>>.document_store.get_titles() # returns the list of titles of documents saved as files in the document store (can be loaded in memory).
-            <<<self.instance_name>>>.document_store.get_loaded() # returns the list of titles of documents currently loaded in memory and active for chunk retrieval.
-            <<<self.instance_name>>>.document_store.new_document(type,title,content,description) # (type='text' or 'json') Create a new stored document from a given content (either text or json_data, json_string, json_file) that is parsed, embedded and loaded for semantic search.
-            <<<self.instance_name>>>.document_store.load_document(title) # Loads a document in memory.
-            <<<self.instance_name>>>.document_store.close_document(title) # unloads a document from memory.
-            <<<self.instance_name>>>.document_store.search(query,num=10) # returns most relevant pieces of informations found in the loaded documents related to a query.
-            document= <<<self.instance_name>>>.document_store.get_document(title) # access the document object in the store
+            agent.document_store.get_titles() # returns the list of titles of documents saved as files in the document store (can be loaded in memory).
+            agent.document_store.get_loaded() # returns the list of titles of documents currently loaded in memory and active for chunk retrieval.
+            agent.document_store.new_document(type,title,content,description) # (type='text' or 'json') Create a new stored document from a given content (either text or json_data, json_string, json_file) that is parsed, embedded and loaded for semantic search.
+            agent.document_store.load_document(title) # Loads a document in memory.
+            agent.document_store.close_document(title) # unloads a document from memory.
+            agent.document_store.search(query,num=10) # returns most relevant pieces of informations found in the loaded documents related to a query.
+            document= agent.document_store.get_document(title) # access the document object in the store
             document.search(query) # search in the document only
         # for a json document only:
             data=document['example']['key']['sequence'] # access data in the document
@@ -215,7 +218,7 @@ def init_tools(agent):
         name="open",
         obj=webbrowser.open,
         description=dedent("""
-        <<<self.instance_name>>>.open(file_or_url) 
+        agent.open(file_or_url) 
         Opens any file or url in a new tab of the user's default webbrowser. 
         Convenient way to open almost anything to show it to the user.
         """)
@@ -225,9 +228,9 @@ def init_tools(agent):
         name="add_tool",
         obj=agent.add_tool,
         description=dedent("""
-        <<<self.instance_name>>>.add_tool(name,obj,description)
+        agent.add_tool(name,obj,description)
         Adds a new tool the ai assistant, provided a name, an object/function as obj, and a complete description of how the tool should be used (signature, methods, example usage). 
-        This tool will be accessible as <<<self.instance_name>>>.<tool_name> from the assistant instance.
+        This tool will be accessible as agent.<tool_name> from the assistant instance.
         """)
     )
 
@@ -235,7 +238,7 @@ def init_tools(agent):
         name="memory",
         obj=agent.store.get_document("memory"),
         description=dedent("""
-        <<<self.instance_name>>>.memory
+        agent.memory
         A special long term memory document (json type) from your document store, specially designed to enable lasting memory.
         Can be accessed and written to as a normal nested dict. Supports .dump() method so save changes and .search(query, num=10) for quick lookup.
         Contextually relevant memory entries will be automatically retrieved in context. Use explicit keys to organize data clearly and improve performance of semantic retrieval.

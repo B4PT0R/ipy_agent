@@ -7,10 +7,10 @@
 
 - The agent captures all inputs and outputs occurring in the session to populate its context (up to token limit). 
 - Use magic commands `%ai` and `%%ai` to interact with the agent using natural language.
-- The assistant uses Whisper for multilingual voice synthesis.
+- The assistant uses OpenAI's Whisper API for multilingual voice synthesis (OpenAI API key required to use it).
 - Hold `<ctrl>+<space>` to record and transcribe your voice into text inserted at cursor position. Useful to speak out your prompts instead of typing them. Once active, it can be used wherever the cursor can go, not just in the notebook. (uses pynput for global keyboard hotkey detection. requires proper permissions to do so.)
 - The agent can autonomously execute Python code within the session.
-- Can be accessed as a declared object in the session, allowing configuration changes or method execution programmatically.
+- Can be accessed as an object in the session, allowing configuration changes or method execution programmatically.
 - Can be used as a smart Python function returning any kind of data/object.
 - Supports various LLM providers and models via [litellm](https://www.litellm.ai/).
 - Integrated tools: The assistant can stream markdown with LaTeX support (in a notebook), talk to you using text to speech, create new code cells in notebooks, observe and extract content (folder, files, URL), introspect python entities (variables, functions, objects, classes, modules...), perform Google searches, perform semantic retrieval using a custom RAG document store (raw text or structured JSON), open files and urls in the browser, open files in a text editor, scrap the web and interact with webpages using a selenium webdriver...
@@ -23,43 +23,85 @@
 pip install ipy-agent
 ```
 
-## Setup
-
-First, you need to set the API keys for your preferred LLM providers as environment variables.
-Refer to the [litellm](https://www.litellm.ai/) documentation to know the correct names for your environment variables to be recognized.
-
-In case you want the agent to be able to use the websearch tool you will also need to setup a Google custom search engine and provide these two API keys:
-
-```bash
-GOOGLE_CUSTOM_SEARCH_API_KEY="..."
-GOOGLE_CUSTOM_SEARCH_CX="..."
-```
-
-These API keys can be placed in your .bashrc, directly in your python code via `os.environ` (not recommended), or provided via a .env file and loaded with python-dotenv for instance.
-
 ## Usage
 
-Assuming your API keys are properly set up, integration into the IPython session (such as a Jupyter notebook) is as simple as running:
+Integration into the IPython session (such as a Jupyter notebook) is as simple as running:
 
 ```python
 from ipy_agent import IPyAgent
-IPyAgent(name="Jarvis", username="Baptiste");
+IPyAgent();
 ```
 
-Once loaded, the agent can be accessed in the namespace by the name you gave it in lowercase (`jarvis` in this case) and will respond to line and cell magics `%ai` and `%%ai` respectively. If no custom name is provided, the agent will be accessible by default as `agent`.
+Once loaded, the agent can be accessed in the namespace as `agent` and will respond to line and cell magics `%ai` and `%%ai` respectively.
 
 Alternatively, you may run the command `ipy_agent` directly in the terminal. This will open a new terminal IPython session with the agent already loaded with default configuration. (Just be aware that voice dictation via `<ctrl>+<space>` tend to freeze the terminal IPython shell.)
 
+## Constructor
+
+Here are the accepted parameters of the agent's constructor.
+
+```python
+IPyAgent(name=None,username=None,preprompt=None,workfolder=None,shell=None,**kwargs)
+```
+
+- `name` (string) gives a custom name to your agent, default is 'Agent'. This won't affect the agent object's name in the session.
+- `username` (string) tells the agent how it should call you. Default is 'User'.
+- `preprompt` (string) passes a custom preprompt (initial system message with instructions) to the agent. This will replace the default preprompt you can find as default_preprompt.txt in the package folder.
+- `workfolder` (path string) the folder the agent will be using to store files it creates. Defaults to `~/IPyAgent'. The folder will be created if it doesn't exist. This is also where you will find the agent's startup script and .env file.
+- `shell` (IPython shell object) The shell object in which the agent will be loaded in. Defaults to the the shell returned by IPython.get_ipython().
+- `**kwargs` additional kwargs will update the agent.config dict.
+
+## Setup
+
+First, you need to set the API keys for your preferred LLM providers as environment variables.
+
+At startup, the agent will attempt to read the .env file found in its workfolder (`~/IPyAgent` by default) to load the various API keys it will use.
+This file will initially be created empty and should be configured before the agent can run smoothly. In case it is left empty, an exception will be raised, asking you to configure it.
+
+Refer to the [litellm](https://www.litellm.ai/) documentation to know the correct names for your environment variables to be recognized.
+
+In case you want the agent to be able to use the websearch tool you will also need to setup a Google custom search engine and provide adequate API keys.
+
+Example:
+```
+# .env
+
+OPENAI_API_KEY="..." (required for TTS and default GPT-4o model)
+ANTHROPIC_API_KEY="..." (in case you want to use Claude3 models)
+GOOGLE_CUSTOM_SEARCH_API_KEY="..." (required for the websearch tool)
+GOOGLE_CUSTOM_SEARCH_CX="..." (required for the websearch tool)
+
+# Add here any other API keys you will use (in custom tools for instance)
+
+```
+
+You will also find a startup.py file. This file will be executed whenever the agent is loaded. You can use it to preload custom tools you want to permanently add to the agent.
+
+Example:
+
+```python
+# startup.py
+
+def sum_tool(a,b):
+    return a+b
+
+agent.add_tool(
+    name="sum",
+    obj=sum_tool,
+    description="agent.sum(a,b) # This tool returns the sum of two numbers a and b."
+)
+```
 
 ### Configuration
 
-You can customize the agent by modifying its configuration. Here are some examples:
+Once loaded in the session, you can customize the agent by modifying its agent.config dict (supports attribute syntax). Here are some examples:
 
 ```python
-jarvis.config.model = "claude-3-opus-20240229"  # Use Claude-3 LLM model
-jarvis.config.temperature = 0.7  # Adjust the model temperature
-jarvis.config.voice_enabled=True # Activate text to speech
-jarvis.config.language = 'en'  # Set default language to English
+agent.config.model = "claude-3-opus-20240229"  # Use Claude-3 LLM model
+agent.config.temperature = 0.7  # Adjust the model temperature
+agent.config.voice_enabled=True # Activate text to speech
+agent.config.voice='shimmer' # The voice used for TTS. 
+agent.config.language = 'en'  # Set default language to English
 ```
 
 ### Usage Examples
@@ -67,7 +109,7 @@ jarvis.config.language = 'en'  # Set default language to English
 #### Simple Conversation
 
 ```python
-%ai Hello Jarvis! I am a novice user. Can you explain what I should know about you?
+%ai Hello Agent! I am a new user. Can you explain what I should know about you?
 ```
 
 #### Code Execution
@@ -83,7 +125,7 @@ The agent will run the adequate python code as a response to computational tasks
 You can use the agent as a smart python function:
 
 ```python
-even_list = jarvis("Return a list of n even numbers", n=5)
+even_list = agent("Return a list of n even numbers", n=5)
 even_list # Output: [0, 2, 4, 6, 8]
 ```
 
@@ -103,8 +145,6 @@ The agent provides several built-in tools to ease various tasks. These tools are
 - `agent.memory`: A special memory storage for the AI assistant. Can be accessed as a nested dict and supports semantic search or auto-retrieval.
 - `agent.open(file_or_url)` : Opens any file or url with your default webbrowser.
 - `agent.add_tool(name,obj,description)` : Add a new custom tool to the agent, provided a name, a pyhton function or object as `obj`, and a complete description of the tool (signature, methods, example...)
-
-These tools are designed to offer maximum flexibility and facilitate various interactions in the IPython session. Feel free to use them directly in your scripts to leverage their advanced functionalities.
 
 ### Contribution
 
