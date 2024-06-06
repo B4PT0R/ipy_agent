@@ -8,49 +8,6 @@ from pydub import AudioSegment
 from pydub.playback import play
 from openai import OpenAI
 
-client=OpenAI()
-
-def play_audio(audio):
-    if audio is not None and audio.get("bytes"):
-        audio_file_like = io.BytesIO(audio["bytes"])
-        audio_segment = AudioSegment.from_file(audio_file_like, format="mp3") 
-        play(audio_segment)
-
-def text_to_audio(text,voice="shimmer"):
-    # Create MP3 audio
-    if text.strip():
-
-        mp3_buffer = io.BytesIO()
-
-        response = client.audio.speech.create(
-            model="tts-1",
-            voice=voice,
-            input=text,
-            speed=1.0
-        )
-
-        for chunk in response.iter_bytes():
-            mp3_buffer.write(chunk)
-
-        mp3_buffer.seek(0)
-
-        audio = AudioSegment.from_file(mp3_buffer,format="mp3").set_channels(1)
-
-        # Extract audio properties
-        sample_rate = audio.frame_rate
-        sample_width = audio.sample_width
-        length=audio.duration_seconds
-
-        # Return the required dictionary
-        return {
-            "bytes": mp3_buffer.getvalue(),
-            "sample_rate": sample_rate,
-            "sample_width": sample_width,
-            "length": length
-        }
-    else:
-        return None
-    
 def get_flags(line,specials):
     for begin, end in specials:
         if line.strip().startswith(begin):
@@ -67,12 +24,54 @@ class VoiceProcessor:
     The thread_decorator is meant for Streamlit compatibility (to decorate Threads with add_script_run_ctx).
     """
     def __init__(self,agent):
+        self.client=OpenAI()
         self.agent=agent
         self.line_queue=Queue()
         self.audio_queue=Queue()
         self.output_queue=Queue()
         self.specials=[("```","```"),("\\[","\\]"),("$$","$$")]
+
+    def text_to_audio(self,text,voice="shimmer"):
+        # Create MP3 audio
+        if text.strip():
+
+            mp3_buffer = io.BytesIO()
+
+            response = self.client.audio.speech.create(
+                model="tts-1",
+                voice=voice,
+                input=text,
+                speed=1.0
+            )
+
+            for chunk in response.iter_bytes():
+                mp3_buffer.write(chunk)
+
+            mp3_buffer.seek(0)
+
+            audio = AudioSegment.from_file(mp3_buffer,format="mp3").set_channels(1)
+
+            # Extract audio properties
+            sample_rate = audio.frame_rate
+            sample_width = audio.sample_width
+            length=audio.duration_seconds
+
+            # Return the required dictionary
+            return {
+                "bytes": mp3_buffer.getvalue(),
+                "sample_rate": sample_rate,
+                "sample_width": sample_width,
+                "length": length
+            }
+        else:
+            return None
         
+    def play_audio(self,audio):
+        if audio is not None and audio.get("bytes"):
+            audio_file_like = io.BytesIO(audio["bytes"])
+            audio_segment = AudioSegment.from_file(audio_file_like, format="mp3") 
+            play(audio_segment)
+
     def line_splitter(self,stream):
         self.line_queue=Queue()
         def target(stream):
@@ -114,7 +113,7 @@ class VoiceProcessor:
                     elif flag:
                         audio=None
                     else:
-                        audio=text_to_audio(line,voice=self.agent.config.voice)
+                        audio=self.text_to_audio(line,voice=self.agent.config.voice)
                 else:
                     audio=None
                 self.audio_queue.put((line,audio))
@@ -145,7 +144,7 @@ class VoiceProcessor:
                 self.output_queue.put('\n')
             
         def target2(audio):
-            play_audio(audio)
+            self.play_audio(audio)
         thread1=Thread(target=target1,args=(line,))
         thread1.start()
         if self.agent.config.voice_enabled:

@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 import os
 
 class IPyAgent:
+
     default_config = AttrDict(
         model="gpt-4o",
         max_tokens=4000,
@@ -32,18 +33,19 @@ class IPyAgent:
         self.config.update(**kwargs)
         self.messages = []
         self.collector = MsgCollector(self)
-        self.voice=VoiceProcessor(self)
         self.name = name or "Agent"
         self.capture=True
         self.username=username or "User"
-        self.current_role = "user"  # Initialisation du rôle courant
+        self.current_role = "user"
         self.current_name=self.username
         self.tools=AttrDict()
         self.init_workfolder(workfolder=workfolder)
-        self.store=DocumentStore(folder=os.path.join(self.workfolder,"documents"))
         self.add_message(Message(content=preprompt or text_content(root_join("default_preprompt.txt")), role="system", name="Instructions", type="header"))
         self.init_files()
+        self.voice=VoiceProcessor(self)
+        self.store=DocumentStore(folder=os.path.join(self.workfolder,"documents"))
         self.init_shell(shell=shell)
+        self.init_memory()
         self.init_tools()
         self.run_startup()
         self.dictation=Dictation(self)
@@ -74,13 +76,16 @@ class IPyAgent:
             raise Exception(f"Please setup the .env file found in {self.workfolder} with your API keys.")
         else:
             load_dotenv(path)
-            
-        if not "memory" in self.store.get_titles():
-            self.store.new_document(type="json",title="memory",content=dict(),description="Memory storage of the AI assistant")
-        self.store.load_document("memory")
+
         path=os.path.join(self.workfolder,"startup.py")
         if not os.path.isfile(path):
             open(path,'w').close()
+    
+    def init_memory(self):
+        if not "memory" in self.store.get_titles():
+            self.store.new_document(type="json",title="memory",content=dict(),description="Memory storage of the AI assistant")
+        self.store.load_document("memory")
+        
 
     def run_startup(self):
         path=os.path.join(self.workfolder,"startup.py")
