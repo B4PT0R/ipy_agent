@@ -106,6 +106,7 @@ class IPyAgent:
         @wraps(self.run_cell)
         def run_cell_with_capture(*args, **kwargs):
             code = args[0]
+            result=None
             if code.strip():
                 if self.current_role == "user":
                     self.collector.collect(Message(content=code, role=self.current_role, name=self.current_name, type="queued"))
