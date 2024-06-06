@@ -155,7 +155,7 @@ class VoiceProcessor:
             thread2.join()
 
     def speak(self,stream):
-        if self.agent.config.voice_enabled:
+        if self.agent.config.voice_enabled and not self.agent.silent:
             def target(stream):
                 self.output_queue=Queue()
                 for line,audio in self.line_processor(stream):
